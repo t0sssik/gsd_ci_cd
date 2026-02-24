@@ -25,3 +25,34 @@ jobs:
 
       - name: Run Postman tests
         run: newman run gsd_api_tests.postman_collection.json -e dev.postman_environment.json
+
+  build-and-push:
+      needs: test-api
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      runs-on: ubuntu-latest
+      
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v2
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        - name: Build and push backend image
+          uses: docker/build-push-action@v4
+          with:
+            context: . # Искать Dockerfile в корне
+            file: ./Dockerfile
+            push: true
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/gsd-backend:latest
+
+        - name: Build and push frontend image
+          uses: docker/build-push-action@v4
+          with:
+            context: ./frontend
+            file: ./frontend/Dockerfile
+            push: true
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/gsd-frontend:latest
