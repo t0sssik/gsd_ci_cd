@@ -7,1107 +7,6 @@
   },
   "item": [
     {
-      "name": "Users",
-      "item": [
-        {
-          "name": "Создание пользователя",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Тест 1: Проверка статус кода (может быть 201 или 400)\r",
-                  "pm.test(\"Status code is 201 or 400 (if already exists)\", function () {\r",
-                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400]);\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 2: Если успешно - проверяем структуру\r",
-                  "if (pm.response.code === 201) {\r",
-                  "    pm.test(\"Response contains required fields\", function () {\r",
-                  "        var jsonData = pm.response.json();\r",
-                  "        pm.expect(jsonData).to.have.property('id');\r",
-                  "        pm.expect(jsonData).to.have.property('username');\r",
-                  "        pm.expect(jsonData).to.have.property('email');\r",
-                  "        pm.expect(jsonData).to.have.property('api_key');\r",
-                  "    });\r",
-                  "\r",
-                  "    pm.test(\"Username matches request\", function () {\r",
-                  "        var jsonData = pm.response.json();\r",
-                  "        pm.expect(jsonData.username).to.eql(\"testuser\");\r",
-                  "    });\r",
-                  "    \r",
-                  "    // Сохранение userId\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.environment.set(\"userId\", jsonData.id);\r",
-                  "}\r",
-                  "\r",
-                  "// Тест 3: Если ошибка - проверяем что это ожидаемая ошибка\r",
-                  "if (pm.response.code === 400) {\r",
-                  "    pm.test(\"Error message is appropriate\", function () {\r",
-                  "        var jsonData = pm.response.json();\r",
-                  "        pm.expect(jsonData.detail).to.be.oneOf([\r",
-                  "            \"Email already registered\",\r",
-                  "            \"Username already taken\"\r",
-                  "        ]);\r",
-                  "    });\r",
-                  "}\r",
-                  "\r",
-                  "// Тест 4: Проверка времени ответа\r",
-                  "pm.test(\"Response time is less than 500ms\", function () {\r",
-                  "    pm.expect(pm.response.responseTime).to.be.below(500);\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"username\": \"testuser\",\r\n  \"email\": \"test@example.com\",\r\n  \"role\": \"user\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Список пользователей",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Тест 1: Проверка статус кода\r",
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 2: Ответ - массив\r",
-                  "pm.test(\"Response is an array\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData).to.be.an('array');\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 3: Массив не пустой (если пользователь был создан)\r",
-                  "pm.test(\"Array is not empty\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.length).to.be.above(0);\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 4: Элементы имеют нужные поля\r",
-                  "pm.test(\"Users have required fields\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    if (jsonData.length > 0) {\r",
-                  "        pm.expect(jsonData[0]).to.have.property('id');\r",
-                  "        pm.expect(jsonData[0]).to.have.property('username');\r",
-                  "    }\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Информация о пользователе",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Тест 1: Проверка статус кода\r",
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 2: Ответ валидный JSON\r",
-                  "pm.test(\"Response is valid JSON\", function () {\r",
-                  "    pm.response.to.be.json;\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 3: ID совпадает с запрошенным\r",
-                  "pm.test(\"User ID matches requested ID\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"userId\")));\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 4: Содержит обязательные поля\r",
-                  "pm.test(\"Response contains all required fields\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData).to.have.all.keys('id', 'username', 'email', 'role', 'registration_date', 'api_key');\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "{{userId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Обновление пользователя",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Тест 1: Проверка статус кода\r",
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 2: Username обновлен\r",
-                  "pm.test(\"Username was updated\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.username).to.eql(\"updated_user\");\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 3: ID не изменился\r",
-                  "pm.test(\"User ID remains the same\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"userId\")));\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"username\": \"updated_user\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "{{userId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Удаление пользователя",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Тест 1: Проверка статус кода\r",
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "// Тест 2: Сообщение об успешном удалении\r",
-                  "pm.test(\"Response contains success message\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData).to.have.property('message');\r",
-                  "    pm.expect(jsonData.message).to.include('deleted successfully');\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "{{userId}}"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Images",
-      "item": [
-        {
-          "name": "Загрузка изображения",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "// Если userId не установлен, создаем пользователя\r",
-                  "if (!pm.environment.get(\"userId\")) {\r",
-                  "    pm.sendRequest({\r",
-                  "        url: pm.environment.get(\"baseUrl\") + \"/api/v1/users\",\r",
-                  "        method: 'POST',\r",
-                  "        header: {\r",
-                  "            'Content-Type': 'application/json',\r",
-                  "        },\r",
-                  "        body: {\r",
-                  "            mode: 'raw',\r",
-                  "            raw: JSON.stringify({\r",
-                  "                \"username\": \"imageuser\",\r",
-                  "                \"email\": \"image@test.com\",\r",
-                  "                \"role\": \"user\"\r",
-                  "            })\r",
-                  "        }\r",
-                  "    }, function (err, response) {\r",
-                  "        if (!err) {\r",
-                  "            pm.environment.set(\"userId\", response.json().id);\r",
-                  "        }\r",
-                  "    });\r",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// Pre-request Script (вкладка Scripts → Pre-request)\r",
-                  "// Убедиться что userId существует\r",
-                  "if (!pm.environment.get(\"userId\")) {\r",
-                  "    console.log(\"userId not set, creating user first\");\r",
-                  "}\r",
-                  "\r",
-                  "// Post-response Tests\r",
-                  "pm.test(\"Status code is 201 or 404\", function () {\r",
-                  "    pm.expect(pm.response.code).to.be.oneOf([201, 404]);\r",
-                  "});\r",
-                  "\r",
-                  "if (pm.response.code === 201) {\r",
-                  "    pm.test(\"Image status is UPLOADED\", function () {\r",
-                  "        var jsonData = pm.response.json();\r",
-                  "        pm.expect(jsonData.status).to.eql(\"uploaded\");\r",
-                  "    });\r",
-                  "\r",
-                  "    pm.test(\"Response contains all required fields\", function () {\r",
-                  "        var jsonData = pm.response.json();\r",
-                  "        pm.expect(jsonData).to.have.property('id');\r",
-                  "        pm.expect(jsonData).to.have.property('filename');\r",
-                  "        pm.expect(jsonData).to.have.property('upload_date');\r",
-                  "    });\r",
-                  "\r",
-                  "    // Сохранение imageId\r",
-                  "    pm.environment.set(\"imageId\", pm.response.json().id);\r",
-                  "}\r",
-                  "\r",
-                  "if (pm.response.code === 404) {\r",
-                  "    pm.test(\"User not found is expected error\", function () {\r",
-                  "        var jsonData = pm.response.json();\r",
-                  "        pm.expect(jsonData.detail).to.eql(\"User not found\");\r",
-                  "    });\r",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"filename\": \"test_image.jpg\",\r\n  \"file_size\": 2048000,\r\n  \"width\": 1920,\r\n  \"height\": 1080,\r\n  \"format\": \"jpg\",\r\n  \"user_id\": {{userId}}\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/images",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Список изображений",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Response is an array\", function () {\r",
-                  "    pm.expect(pm.response.json()).to.be.an('array');\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Images have required fields\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    if (jsonData.length > 0) {\r",
-                  "        pm.expect(jsonData[0]).to.have.property('id');\r",
-                  "        pm.expect(jsonData[0]).to.have.property('filename');\r",
-                  "        pm.expect(jsonData[0]).to.have.property('status');\r",
-                  "    }\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/images",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Информация об изображении",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Image ID matches requested\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"imageId\")));\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Response time is acceptable\", function () {\r",
-                  "    pm.expect(pm.response.responseTime).to.be.below(300);\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{imageId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images",
-                "{{imageId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Обновление метаданных",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Image status updated to processing\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.status).to.eql(\"processing\");\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"status\": \"processing\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{imageId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images",
-                "{{imageId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Удаление изображения",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Success message returned\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.message).to.include(\"deleted successfully\");\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{imageId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images",
-                "{{imageId}}"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Models",
-      "item": [
-        {
-          "name": "Регистрация модели",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r",
-                  "    pm.response.to.have.status(201);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Model created with correct name\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.model_name).to.eql(\"GSD_ResNet_v1\");\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Training date is present\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData).to.have.property('training_date');\r",
-                  "});\r",
-                  "\r",
-                  "// Сохранение modelId\r",
-                  "if (pm.response.code === 201) {\r",
-                  "    pm.environment.set(\"modelId\", pm.response.json().id);\r",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"model_name\": \"GSD_ResNet_v1\",\r\n  \"version\": \"1.0.0\",\r\n  \"architecture\": \"ResNet50\",\r\n  \"accuracy\": 0.95,\r\n  \"is_active\": true\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/models",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "models"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Список моделей",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Response is array\", function () {\r",
-                  "    pm.expect(pm.response.json()).to.be.an('array');\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Models have required structure\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    if (jsonData.length > 0) {\r",
-                  "        pm.expect(jsonData[0]).to.have.property('model_name');\r",
-                  "        pm.expect(jsonData[0]).to.have.property('version');\r",
-                  "    }\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/models",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "models"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Информация о модели",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Model ID matches\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"modelId\")));\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/models/{{modelId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "models",
-                "{{modelId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Обновление модели",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Model is_active updated\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.is_active).to.be.false;\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"is_active\": false\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/models/{{modelId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "models",
-                "{{modelId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Удаление модели",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Deletion confirmed\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.message).to.include(\"deleted\");\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/models/{{modelId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "models",
-                "{{modelId}}"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Assessments",
-      "item": [
-        {
-          "name": "Создание оценки",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r",
-                  "    pm.response.to.have.status(201);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Assessment contains GSD value\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData).to.have.property('gsd_value');\r",
-                  "    pm.expect(jsonData.gsd_value).to.eql(0.5);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Confidence score is valid\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.confidence_score).to.be.within(0, 1);\r",
-                  "});\r",
-                  "\r",
-                  "// Сохранение assessmentId\r",
-                  "if (pm.response.code === 201) {\r",
-                  "    pm.environment.set(\"assessmentId\", pm.response.json().id);\r",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"image_id\": {{imageId}},\r\n  \"model_id\": {{modelId}},\r\n  \"gsd_value\": 0.5,\r\n  \"confidence_score\": 0.92,\r\n  \"processing_time\": 1.3\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/assessments",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "assessments"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Список оценок",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Response is array\", function () {\r",
-                  "    pm.expect(pm.response.json()).to.be.an('array');\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/assessments",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "assessments"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Результаты оценки",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Assessment ID matches\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"assessmentId\")));\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "assessments",
-                "{{assessmentId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Обновление оценки",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Confidence score updated\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData.confidence_score).to.eql(0.98);\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"confidence_score\": 0.98\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "assessments",
-                "{{assessmentId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Удаление оценки",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Deletion message present\", function () {\r",
-                  "    pm.expect(pm.response.json().message).to.exist;\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "assessments",
-                "{{assessmentId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Оценки для изображения",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Response is array\", function () {\r",
-                  "    pm.expect(pm.response.json()).to.be.an('array');\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"All assessments belong to requested image\", function () {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    var imageId = parseInt(pm.environment.get(\"imageId\"));\r",
-                  "    jsonData.forEach(assessment => {\r",
-                  "        pm.expect(assessment.image_id).to.eql(imageId);\r",
-                  "    });\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{imageId}}/assessments",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images",
-                "{{imageId}}",
-                "assessments"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "RESET",
       "event": [
         {
@@ -1147,6 +46,1087 @@
             "api",
             "v1",
             "reset"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Создание пользователя",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Тест 1: Проверка статус кода (может быть 201 или 400)\r",
+              "pm.test(\"Status code is 201 or 400 (if already exists)\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([201, 400]);\r",
+              "});\r",
+              "\r",
+              "// Тест 2: Если успешно - проверяем структуру\r",
+              "if (pm.response.code === 201) {\r",
+              "    pm.test(\"Response contains required fields\", function () {\r",
+              "        var jsonData = pm.response.json();\r",
+              "        pm.expect(jsonData).to.have.property('id');\r",
+              "        pm.expect(jsonData).to.have.property('username');\r",
+              "        pm.expect(jsonData).to.have.property('email');\r",
+              "        pm.expect(jsonData).to.have.property('api_key');\r",
+              "    });\r",
+              "\r",
+              "    pm.test(\"Username matches request\", function () {\r",
+              "        var jsonData = pm.response.json();\r",
+              "        pm.expect(jsonData.username).to.eql(\"testuser\");\r",
+              "    });\r",
+              "    \r",
+              "    // Сохранение userId\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.environment.set(\"userId\", jsonData.id);\r",
+              "}\r",
+              "\r",
+              "// Тест 3: Если ошибка - проверяем что это ожидаемая ошибка\r",
+              "if (pm.response.code === 400) {\r",
+              "    pm.test(\"Error message is appropriate\", function () {\r",
+              "        var jsonData = pm.response.json();\r",
+              "        pm.expect(jsonData.detail).to.be.oneOf([\r",
+              "            \"Email already registered\",\r",
+              "            \"Username already taken\"\r",
+              "        ]);\r",
+              "    });\r",
+              "}\r",
+              "\r",
+              "// Тест 4: Проверка времени ответа\r",
+              "pm.test(\"Response time is less than 500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"testuser\",\r\n  \"email\": \"test@example.com\",\r\n  \"role\": \"user\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Список пользователей",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Тест 1: Проверка статус кода\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "// Тест 2: Ответ - массив\r",
+              "pm.test(\"Response is an array\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.be.an('array');\r",
+              "});\r",
+              "\r",
+              "// Тест 3: Массив не пустой (если пользователь был создан)\r",
+              "pm.test(\"Array is not empty\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "// Тест 4: Элементы имеют нужные поля\r",
+              "pm.test(\"Users have required fields\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    if (jsonData.length > 0) {\r",
+              "        pm.expect(jsonData[0]).to.have.property('id');\r",
+              "        pm.expect(jsonData[0]).to.have.property('username');\r",
+              "    }\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Информация о пользователе",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Тест 1: Проверка статус кода\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "// Тест 2: Ответ валидный JSON\r",
+              "pm.test(\"Response is valid JSON\", function () {\r",
+              "    pm.response.to.be.json;\r",
+              "});\r",
+              "\r",
+              "// Тест 3: ID совпадает с запрошенным\r",
+              "pm.test(\"User ID matches requested ID\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"userId\")));\r",
+              "});\r",
+              "\r",
+              "// Тест 4: Содержит обязательные поля\r",
+              "pm.test(\"Response contains all required fields\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.all.keys('id', 'username', 'email', 'role', 'registration_date', 'api_key');\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{userId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Обновление пользователя",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Тест 1: Проверка статус кода\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "// Тест 2: Username обновлен\r",
+              "pm.test(\"Username was updated\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.username).to.eql(\"updated_user\");\r",
+              "});\r",
+              "\r",
+              "// Тест 3: ID не изменился\r",
+              "pm.test(\"User ID remains the same\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"userId\")));\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"updated_user\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{userId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Загрузка изображения",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Если userId не установлен, создаем пользователя\r",
+              "if (!pm.environment.get(\"userId\")) {\r",
+              "    pm.sendRequest({\r",
+              "        url: pm.environment.get(\"baseUrl\") + \"/api/v1/users\",\r",
+              "        method: 'POST',\r",
+              "        header: {\r",
+              "            'Content-Type': 'application/json',\r",
+              "        },\r",
+              "        body: {\r",
+              "            mode: 'raw',\r",
+              "            raw: JSON.stringify({\r",
+              "                \"username\": \"imageuser\",\r",
+              "                \"email\": \"image@test.com\",\r",
+              "                \"role\": \"user\"\r",
+              "            })\r",
+              "        }\r",
+              "    }, function (err, response) {\r",
+              "        if (!err) {\r",
+              "            pm.environment.set(\"userId\", response.json().id);\r",
+              "        }\r",
+              "    });\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Pre-request Script (вкладка Scripts → Pre-request)\r",
+              "// Убедиться что userId существует\r",
+              "if (!pm.environment.get(\"userId\")) {\r",
+              "    console.log(\"userId not set, creating user first\");\r",
+              "}\r",
+              "\r",
+              "// Post-response Tests\r",
+              "pm.test(\"Status code is 201 or 404\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([201, 404]);\r",
+              "});\r",
+              "\r",
+              "if (pm.response.code === 201) {\r",
+              "    pm.test(\"Image status is UPLOADED\", function () {\r",
+              "        var jsonData = pm.response.json();\r",
+              "        pm.expect(jsonData.status).to.eql(\"uploaded\");\r",
+              "    });\r",
+              "\r",
+              "    pm.test(\"Response contains all required fields\", function () {\r",
+              "        var jsonData = pm.response.json();\r",
+              "        pm.expect(jsonData).to.have.property('id');\r",
+              "        pm.expect(jsonData).to.have.property('filename');\r",
+              "        pm.expect(jsonData).to.have.property('upload_date');\r",
+              "    });\r",
+              "\r",
+              "    // Сохранение imageId\r",
+              "    pm.environment.set(\"imageId\", pm.response.json().id);\r",
+              "}\r",
+              "\r",
+              "if (pm.response.code === 404) {\r",
+              "    pm.test(\"User not found is expected error\", function () {\r",
+              "        var jsonData = pm.response.json();\r",
+              "        pm.expect(jsonData.detail).to.eql(\"User not found\");\r",
+              "    });\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"filename\": \"test_image.jpg\",\r\n  \"file_size\": 2048000,\r\n  \"width\": 1920,\r\n  \"height\": 1080,\r\n  \"format\": \"jpg\",\r\n  \"user_id\": {{userId}}\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/images",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "images"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Список изображений",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response is an array\", function () {\r",
+              "    pm.expect(pm.response.json()).to.be.an('array');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Images have required fields\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    if (jsonData.length > 0) {\r",
+              "        pm.expect(jsonData[0]).to.have.property('id');\r",
+              "        pm.expect(jsonData[0]).to.have.property('filename');\r",
+              "        pm.expect(jsonData[0]).to.have.property('status');\r",
+              "    }\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/images",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "images"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Информация об изображении",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Image ID matches requested\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"imageId\")));\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time is acceptable\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/images/{{imageId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "images",
+            "{{imageId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Обновление метаданных",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Image status updated to processing\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.status).to.eql(\"processing\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"status\": \"processing\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/images/{{imageId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "images",
+            "{{imageId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Регистрация модели",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Model created with correct name\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.model_name).to.eql(\"GSD_ResNet_v1\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Training date is present\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property('training_date');\r",
+              "});\r",
+              "\r",
+              "// Сохранение modelId\r",
+              "if (pm.response.code === 201) {\r",
+              "    pm.environment.set(\"modelId\", pm.response.json().id);\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"model_name\": \"GSD_ResNet_v1\",\r\n  \"version\": \"1.0.0\",\r\n  \"architecture\": \"ResNet50\",\r\n  \"accuracy\": 0.95,\r\n  \"is_active\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/models",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "models"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Список моделей",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response is array\", function () {\r",
+              "    pm.expect(pm.response.json()).to.be.an('array');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Models have required structure\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    if (jsonData.length > 0) {\r",
+              "        pm.expect(jsonData[0]).to.have.property('model_name');\r",
+              "        pm.expect(jsonData[0]).to.have.property('version');\r",
+              "    }\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/models",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "models"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Информация о модели",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Model ID matches\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"modelId\")));\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/models/{{modelId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "models",
+            "{{modelId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Обновление модели",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Model is_active updated\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.is_active).to.be.false;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"is_active\": false\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/models/{{modelId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "models",
+            "{{modelId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Создание оценки",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Assessment contains GSD value\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property('gsd_value');\r",
+              "    pm.expect(jsonData.gsd_value).to.eql(0.5);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Confidence score is valid\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.confidence_score).to.be.within(0, 1);\r",
+              "});\r",
+              "\r",
+              "// Сохранение assessmentId\r",
+              "if (pm.response.code === 201) {\r",
+              "    pm.environment.set(\"assessmentId\", pm.response.json().id);\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"image_id\": {{imageId}},\r\n  \"model_id\": {{modelId}},\r\n  \"gsd_value\": 0.5,\r\n  \"confidence_score\": 0.92,\r\n  \"processing_time\": 1.3\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/assessments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "assessments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Список оценок",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response is array\", function () {\r",
+              "    pm.expect(pm.response.json()).to.be.an('array');\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/assessments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "assessments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Результаты оценки",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Assessment ID matches\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.id).to.eql(parseInt(pm.environment.get(\"assessmentId\")));\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "assessments",
+            "{{assessmentId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Обновление оценки",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Confidence score updated\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.confidence_score).to.eql(0.98);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"confidence_score\": 0.98\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "assessments",
+            "{{assessmentId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Оценки для изображения",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response is array\", function () {\r",
+              "    pm.expect(pm.response.json()).to.be.an('array');\r",
+              "});\r",
+              "\r",
+              "pm.test(\"All assessments belong to requested image\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    var imageId = parseInt(pm.environment.get(\"imageId\"));\r",
+              "    jsonData.forEach(assessment => {\r",
+              "        pm.expect(assessment.image_id).to.eql(imageId);\r",
+              "    });\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/images/{{imageId}}/assessments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "images",
+            "{{imageId}}",
+            "assessments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Удаление пользователя",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Тест 1: Проверка статус кода\r",
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "// Тест 2: Сообщение об успешном удалении\r",
+              "pm.test(\"Response contains success message\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property('message');\r",
+              "    pm.expect(jsonData.message).to.include('deleted successfully');\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{userId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Удаление модели",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Deletion confirmed\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.message).to.include(\"deleted\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/models/{{modelId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "models",
+            "{{modelId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Удаление оценки",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Deletion message present\", function () {\r",
+              "    pm.expect(pm.response.json().message).to.exist;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "assessments",
+            "{{assessmentId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Удаление изображения",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Success message returned\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.message).to.include(\"deleted successfully\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/images/{{imageId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "images",
+            "{{imageId}}"
           ]
         }
       },
