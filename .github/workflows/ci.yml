@@ -34,4 +34,4 @@ jobs:
       # Если какой-то тест завершится ошибкой, Newman вернет код ошибки,
       # и весь CI-процесс будет помечен как проваленный.
       - name: Run Postman tests
-        run: newman run gsd_api_tests.postman_collection.json
+        run: newman run gsd_api_tests.postman_collection.json --env-var "baseurl=http://localhost:8000"
