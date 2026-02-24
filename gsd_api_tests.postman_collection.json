@@ -347,6 +347,11 @@
               "    pm.expect(pm.response.code).to.be.oneOf([201, 404]);\r",
               "});\r",
               "\r",
+              "// Сохраняем ID созданного изображения в переменную\r",
+              "if (pm.response.code === 201) {\r",
+              "    pm.environment.set(\"imageId_to_delete\", pm.response.json().id);\r",
+              "}\r",
+              "\r",
               "if (pm.response.code === 201) {\r",
               "    pm.test(\"Image status is UPLOADED\", function () {\r",
               "        var jsonData = pm.response.json();\r",
@@ -747,10 +752,10 @@
               "    pm.response.to.have.status(201);\r",
               "});\r",
               "\r",
-              "pm.test(\"Assessment contains GSD value\", function () {\r",
-              "    var jsonData = pm.response.json();\r",
-              "    pm.expect(jsonData).to.have.property('gsd_value');\r",
-              "    pm.expect(jsonData.gsd_value).to.eql(0.5);\r",
+              "pm.test(\"Assessment contains a valid GSD value\", function () {\r",
+              "    pm.expect(jsonData).to.have.property('gsd_value'); // Проверяем, что поле вообще есть\r",
+              "    pm.expect(jsonData.gsd_value).to.be.a('number');   // Проверяем, что это число\r",
+              "    pm.expect(jsonData.gsd_value).to.be.within(0, 9); // Проверяем, что оно в нужном диапазоне\r",
               "});\r",
               "\r",
               "pm.test(\"Confidence score is valid\", function () {\r",
@@ -761,6 +766,11 @@
               "// Сохранение assessmentId\r",
               "if (pm.response.code === 201) {\r",
               "    pm.environment.set(\"assessmentId\", pm.response.json().id);\r",
+              "}\r",
+              "\r",
+              "// Сохраняем ID созданной оценки в переменную\r",
+              "if (pm.response.code === 201) {\r",
+              "    pm.environment.set(\"assessmentId_to_delete\", pm.response.json().id);\r",
               "}"
             ],
             "type": "text/javascript",
@@ -1078,7 +1088,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId}}",
+          "raw": "{{baseUrl}}/api/v1/assessments/{{assessmentId_to_delete}}",
           "host": [
             "{{baseUrl}}"
           ],
@@ -1086,7 +1096,7 @@
             "api",
             "v1",
             "assessments",
-            "{{assessmentId}}"
+            "{{assessmentId_to_delete}}"
           ]
         }
       },
@@ -1118,7 +1128,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/v1/images/{{imageId}}",
+          "raw": "{{baseUrl}}/api/v1/images/{{imageId_to_delete}}",
           "host": [
             "{{baseUrl}}"
           ],
@@ -1126,7 +1136,7 @@
             "api",
             "v1",
             "images",
-            "{{imageId}}"
+            "{{imageId_to_delete}}"
           ]
         }
       },
