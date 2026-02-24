@@ -23,7 +23,7 @@ jobs:
       # 4. Запускаем всю нашу систему (backend, frontend, db) в фоновом режиме
       # Точно так же, как мы делали локально, но с флагом -d (detached)
       - name: Run Docker Compose
-        run: docker-compose up -d --build
+        run: docker compose up -d --build
 
       # 5. Делаем небольшую паузу, чтобы все сервисы успели полностью запуститься
       - name: Wait for services to start
