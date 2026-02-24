@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Сервис базы данных
+  db:
+    image: postgres:13-alpine
+    container_name: gsd_db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=gsd_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432" # Открываем порт для возможного подключения извне
+    restart: always
+
+  # Сервис серверной части (наше API)
+  backend:
+    build: . # Собрать образ из Dockerfile в текущей директории
+    container_name: gsd_backend
+    ports:
+      - "8000:8000"
+    # Передаем переменные окружения для подключения к БД
+    # (Хотя в текущей версии кода они не используются, это правильная практика)
+    environment:
+      - DATABASE_URL=postgresql://user:password@db/gsd_db
+    depends_on:
+      - db # Запустить backend только после запуска db
+    restart: on-failure
+
+  # Сервис клиентской части
+  frontend:
+    build: ./frontend # Собрать образ из Dockerfile в папке frontend
+    container_name: gsd_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend # Запустить frontend только после запуска backend
+    restart: on-failure
+
+# Docker-том для сохранения данных БД между перезапусками
+volumes:
+  postgres_data:

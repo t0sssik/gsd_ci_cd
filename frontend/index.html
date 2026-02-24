@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GSD Assessment</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+        .result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Загрузка изображения для оценки GSD</h1>
+    <p>
+        Этот клиент взаимодействует с API, запущенным в другом Docker-контейнере. 
+        Он создает пользователя, модель и изображение, а затем запрашивает оценку GSD.
+    </p>
+    <button onclick="runTest()">Запустить тестовый сценарий</button>
+    <div id="result" class="result"></div>
+
+    <script>
+        // URL нашего API (docker-compose предоставит нам хост 'backend')
+        // Но из браузера мы обращаемся через Nginx, который проксирует запросы.
+        // Для простоты мы будем обращаться к FastAPI напрямую по его порту.
+        const apiUrl = 'http://localhost:8000/api/v1';
+
+        async function runTest() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Начинаем...<br>';
+
+            try {
+                // 1. Создаем пользователя
+                let response = await fetch(`${apiUrl}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: `user_${Date.now()}`, email: `user_${Date.now()}@test.com` })
+                });
+                const user = await response.json();
+                resultDiv.innerHTML += `Пользователь создан: ID ${user.id}<br>`;
+
+                // 2. Создаем модель
+                response = await fetch(`${apiUrl}/models`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_name: 'test-model', version: '1.0' })
+                });
+                const model = await response.json();
+                resultDiv.innerHTML += `Модель создана: ID ${model.id}<br>`;
+
+                // 3. "Загружаем" изображение
+                response = await fetch(`${apiUrl}/images`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user.id, filename: 'test.jpg', file_size: 1024 })
+                });
+                const image = await response.json();
+                resultDiv.innerHTML += `Изображение создано: ID ${image.id}<br>`;
+
+                // 4. Запрашиваем оценку
+                response = await fetch(`${apiUrl}/assessments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_id: image.id, model_id: model.id, gsd_value: 0, confidence_score: 0 })
+                });
+                const assessment = await response.json();
+                resultDiv.innerHTML += `<b>Оценка получена! GSD = ${assessment.gsd_value}</b><br>`;
+                resultDiv.innerHTML += 'Готово!';
+
+            } catch (error) {
+                resultDiv.innerHTML += `<b>Ошибка:</b> ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
