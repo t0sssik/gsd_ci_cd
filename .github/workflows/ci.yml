@@ -6,32 +6,22 @@ jobs:
   test-api:
     runs-on: ubuntu-latest
     steps:
-      # 1. Клонируем код из нашего репозитория
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Устанавливаем Node.js (он нужен для Newman)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # 3. Устанавливаем Newman глобально
       - name: Install Newman
         run: npm install -g newman
 
-      # 4. Запускаем всю нашу систему (backend, frontend, db) в фоновом режиме
-      # Точно так же, как мы делали локально, но с флагом -d (detached)
       - name: Run Docker Compose
         run: docker compose up -d --build
 
-      # 5. Делаем небольшую паузу, чтобы все сервисы успели полностью запуститься
       - name: Wait for services to start
         run: sleep 15
 
-      # 6. Запускаем тесты Newman!
-      # Эта команда выполнит все запросы из вашего файла.
-      # Если какой-то тест завершится ошибкой, Newman вернет код ошибки,
-      # и весь CI-процесс будет помечен как проваленный.
       - name: Run Postman tests
-        run: newman run gsd_api_tests.postman_collection.json --env-var "baseurl=http://localhost:8000"
+        run: newman run gsd_api_tests.postman_collection.json -e dev.postman_environment.json
